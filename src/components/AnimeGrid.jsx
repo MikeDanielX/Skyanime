@@ -1,20 +1,59 @@
+import { useEffect, useState } from 'react'; // <--- Import Hooks
 import AnimeCard from './AnimeCard';
+import SkeletonCard from './SkeletonCard.jsx'
 
 const AnimeGrid = () => {
-  // Temporary Fake Data to test the layout
-  const animeList = [
-    { id: 1, title: "Attack on Titan", year: 2013, rating: "9.0", image: "https://cdn.myanimelist.net/images/anime/10/47347.jpg" },
-    { id: 2, title: "One Piece", year: 1999, rating: "8.9", image: "https://cdn.myanimelist.net/images/anime/6/73245.jpg" },
-    { id: 3, title: "Demon Slayer", year: 2019, rating: "8.7", image: "https://cdn.myanimelist.net/images/anime/1286/99889.jpg" },
-    { id: 4, title: "Jujutsu Kaisen", year: 2020, rating: "8.8", image: "https://cdn.myanimelist.net/images/anime/1171/109222.jpg" },
-    { id: 5, title: "Death Note", year: 2006, rating: "9.0", image: "https://cdn.myanimelist.net/images/anime/9/9453.jpg" },
-  ];
+  // 1. STATE: Places to store data
+  // animeList: Stores the array of anime we get from the API
+  const [animeList, setAnimeList] = useState([]);
+  // loading: Tracks if we are still waiting for data (starts as true)
+  const [loading, setLoading] = useState(true);
+
+  // 2. EFFECT: The "Action" that happens when the component loads
+  useEffect(() => {
+    // We define an async function inside because useEffect itself cannot be async
+    const fetchAnime = async () => {
+      try {
+        // A. Request data from Jikan API (Top Anime, limit to 10)
+        const response = await fetch('https://api.jikan.moe/v4/top/anime?limit=10');
+        const data = await response.json();
+
+        // B. The "Adapter": Transform messy API data into clean data for our cards
+        // Jikan returns the list inside data.data
+        const cleanData = data.data.map((anime) => ({
+          id: anime.mal_id,
+          title: anime.title_english || anime.title, // Use English title if available
+          image: anime.images.jpg.large_image_url,   // Dig deep to find the image
+          year: anime.year || "N/A",                 // Handle missing years
+          rating: anime.score,                       // The score out of 10
+        }));
+
+        // C. Save the clean data to state
+        setAnimeList(cleanData);
+      } catch (error) {
+        console.error("Error fetching anime:", error);
+      } finally {
+        // D. Turn off the loading flag (whether we succeeded or failed)
+        setLoading(false);
+      }
+    };
+
+    fetchAnime(); // <--- Run the function we just defined
+  }, []); // <--- Empty dependency array [] means "Run only once on mount"
+
+  // 3. RENDER: Handle Loading vs Content
+  if (loading) {
+    // Instead of text, we render 10 SkeletonCards
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        {[...Array(10)].map((_, index) => (
+          <SkeletonCard key={index} />
+        ))}
+      </div>
+    );
+  }
 
   return (
-    // The Grid Layout
-    // grid-cols-2: Mobile users see 2 items per row
-    // md:grid-cols-4: Tablet users see 4 items
-    // lg:grid-cols-5: Desktop users see 5 items
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
       {animeList.map((anime) => (
         <AnimeCard key={anime.id} anime={anime} />
