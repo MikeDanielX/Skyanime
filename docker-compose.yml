@@ -1,0 +1,23 @@
+# Postgres local para desarrollo. `pnpm db:up` levanta, `pnpm db:down` para.
+# Credenciales coinciden con DATABASE_URL de .env.example (solo local, no prod).
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: personal-hub-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hub
+      POSTGRES_PASSWORD: hub
+      POSTGRES_DB: personal_hub
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hub -d personal_hub"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

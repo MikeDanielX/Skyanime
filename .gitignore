@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.turbo/
+.vite/
+*.log
+
+# Build artifacts de TypeScript (incremental)
+*.tsbuildinfo
+
+# Secrets — NUNCA en git. Solo .env.example se versiona.
+.env
+.env.*
+!.env.example
+
+# Prisma
+apps/api/prisma/*.db

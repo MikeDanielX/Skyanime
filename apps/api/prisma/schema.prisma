@@ -1,0 +1,157 @@
+// Prisma usa UN solo schema file (no soporta split físico por módulo de forma
+// nativa). Trade-off del ORM: los MODELOS de cada módulo viven aquí juntos, pero
+// las RUTAS/SERVICIOS de cada módulo viven en su carpeta (src/modules/<id>/).
+// Cada bloque está rotulado con su módulo para mantener el mapa mental modular.
+
+generator client {
+  provider = "prisma-client-js"
+  // "native" = máquina local (dev). "rhel-openssl-3.0.x" = runtime de Vercel
+  // (Amazon Linux 2023, OpenSSL 3). Sin el segundo target la función serverless
+  // arranca con "query engine not found for current platform".
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  // Runtime (Prisma Client): URL POOLED de Neon (host con "-pooler", PgBouncer).
+  url       = env("DATABASE_URL")
+  // Migraciones (prisma migrate): URL DIRECTA sin pooler. El motor de migración
+  // usa una sola conexión y no funciona a través de PgBouncer.
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────── CORE (auth · Lucia) ───────────────────────
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String // argon2id — NUNCA plaintext
+  createdAt    DateTime @default(now())
+
+  sessions      Session[]
+  notes         Note[]
+  animeEntries  AnimeEntry[]
+  animeSections AnimeSection[]
+  bookEntries   BookEntry[]
+  bookSections  BookSection[]
+}
+
+// Sesión opaca en DB (no JWT) — revocable al instante borrando la fila.
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─────────────────────── MÓDULO: notes ───────────────────────
+model Note {
+  id        String     @id @default(cuid())
+  userId    String
+  title     String
+  body      String     @default("") // FASE 2: candidato a cifrado at-rest
+  status    NoteStatus @default(TODO)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum NoteStatus {
+  TODO
+  DOING
+  DONE
+}
+
+// ─────────────────────── MÓDULO: anime (AniList + Kitsu) ───────────────────────
+// Fuente-agnóstico: `source` ("anilist"|"kitsu") + `externalId` (string, porque
+// Kitsu usa ids string). Mismo principio de independencia que el AIProvider —
+// si una fuente cae, otra la sustituye sin tocar el modelo. Dedup por la terna.
+model AnimeEntry {
+  id            String      @id @default(cuid())
+  userId        String
+  source         String // "anilist" | "kitsu"
+  externalId     String // id en la fuente
+  title          String
+  coverImageUrl  String?
+  bannerImageUrl String? // banner ancho (wallpaper del hero); póster ≠ banner
+  status         WatchStatus @default(PLANNED)
+  score         Int? // ranking personal 0-100
+  // Sección personalizada opcional (ej "Top 10"). Si es null, el anime se agrupa
+  // por su `status`. onDelete: SetNull → borrar la sección devuelve sus animes a
+  // las filas por estado, no los elimina.
+  sectionId     String?
+  createdAt     DateTime    @default(now())
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  section       AnimeSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, source, externalId])
+  @@index([userId])
+  @@index([sectionId])
+}
+
+enum WatchStatus {
+  WATCHING
+  COMPLETED
+  PLANNED
+  DROPPED
+}
+
+// Sección personalizada de anime definida por el usuario (ej "Top 10", "Joyas").
+// Complementa —no reemplaza— las filas por estado. `position` ordena las filas.
+model AnimeSection {
+  id        String       @id @default(cuid())
+  userId    String
+  name      String
+  position  Int          @default(0)
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries   AnimeEntry[]
+
+  @@index([userId])
+}
+
+// ─────────────────────── MÓDULO: books (Open Library) ───────────────────────
+model BookEntry {
+  id            String     @id @default(cuid())
+  userId        String
+  openLibKey    String // ej "/works/OL45804W"
+  title         String
+  author        String?
+  coverImageUrl String?
+  status        ReadStatus @default(PLANNED)
+  // Sección personalizada opcional (ej "Favoritos"). Si es null, el libro se
+  // agrupa por su `status`. onDelete: SetNull → borrar la sección devuelve sus
+  // libros a las filas por estado, no los elimina.
+  sectionId     String?
+  createdAt     DateTime   @default(now())
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  section       BookSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, openLibKey])
+  @@index([userId])
+  @@index([sectionId])
+}
+
+enum ReadStatus {
+  READING
+  COMPLETED
+  PLANNED
+  DROPPED
+}
+
+// Sección personalizada de libros definida por el usuario (ej "Favoritos").
+// Complementa —no reemplaza— las filas por estado. `position` ordena las filas.
+model BookSection {
+  id        String      @id @default(cuid())
+  userId    String
+  name      String
+  position  Int         @default(0)
+  createdAt DateTime    @default(now())
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries   BookEntry[]
+
+  @@index([userId])
+}
