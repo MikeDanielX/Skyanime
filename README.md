@@ -1,116 +1,98 @@
-# Personal AI Hub
+# Sky Anime — Your Personal AI Hub
 
-Hub personal single-user, **modular** y con IA independiente. Cada dominio de mi vida
-(notas, anime, libros, y en el futuro finanzas) es un **módulo enchufable**. Encima corre
-una capa de IA que puedo cambiar entre un modelo **local** (gratis, offline) y **Claude**
-(potente) con un interruptor.
+Welcome to Sky Anime. This isn't just another platform for tracking shows or reading lists: it's your centralized digital space. A modular Personal Hub where you organize your daily life (anime, books, notes, and more) assisted by an AI you control.
 
-Este repo es **Fase 1**: la base sólida (auth, arquitectura de módulos, capa IA, deploy-ready)
-sobre la que se construyen las fases siguientes sin reescribir el core.
+Manage your passions, capture daily notes, and chat with an AI assistant that understands the full context of everything you store.
 
-## Por qué está construido así (decisiones)
+---
 
-Este proyecto es también portfolio. Las decisiones importan tanto como el código.
+## What is this about?
 
-### Arquitectura de módulos
-Un **módulo** = carpeta autocontenida con su modelo de datos, sus rutas API y su UI. Hay un
-**registro central** en back (`apps/api/src/modules/registry.ts`) y en front
-(`apps/web/src/modules/registry.tsx`). Añadir un módulo = crear su carpeta + registrarlo.
-El core no se toca. Esto es lo que hace el hub escalable: Fase 2 (finanzas) y los módulos
-Anime/Books se enchufan igual que Notas.
+The idea is simple: one single place for all your stuff. Instead of relying on a dozen different apps, Sky Anime brings them together into a smooth, private experience.
 
-### Independencia del cerebro IA — `packages/ai`
-La IA **no puede ser solo Claude**. Si Claude cae, el hub no debe morir. La capa `AIProvider`
-es un **enchufe/interruptor, no un filtro**: cada petición va a **UN** proveedor entero.
+Currently includes:
 
-- `OllamaProvider` → modelo local (Qwen 7B vía Ollama). Gratis, offline, 0 tokens. **Default.**
-- `ClaudeProvider` → Claude. Potente, gasta tokens.
+* **Notes:** Capture ideas and quick thoughts on the fly with full security.
+* **Contextual AI Chat:** Talk to an AI that knows what you have saved in your hub to deliver better answers.
+* **Anime Module:** Track what you're watching, paused, or dropped, and build custom sections or a personalized Top 10 list.
+* **Book Module:** Discover trending titles, check bestsellers, and organize your personal library your way.
 
-El usuario elige el proveedor manualmente en la UI. `AIRegistry.pick(id)` enruta. La interfaz
-`generate(messages) → text` es mínima a propósito — Fase 3 (Jarvis + tool-calling) se cuelga
-encima sin cambiarla.
+> **The best part?** Everything is built modally. If you want to plug in a module for Finances, Music, or any other hobby tomorrow, it connects directly without breaking the core app.
 
-### Seguridad desde el día 1
-Es un gap que quiero cerrar, así que está hecho explícito y documentado:
+---
 
-1. **Passwords con argon2id** (`apps/api/src/core/auth/routes.ts`). Resiste cracking por GPU
-   mucho mejor que bcrypt. Nunca se guarda plaintext, solo el hash.
-2. **Sesión opaca en DB, no JWT** (Lucia). Se revoca al instante borrando la fila. La cookie es
-   `httpOnly` (el JS del navegador no puede leerla → anti-XSS) + `SameSite=Lax` (anti-CSRF) +
-   `Secure` en producción.
-3. **Validación de input en el servidor con Zod** (`packages/shared` define los schemas; la API
-   los aplica en cada ruta). El cliente reusa los mismos schemas solo para feedback, **nunca**
-   se confía en él.
-4. **Aislamiento por usuario**: toda query filtra por `userId` de la sesión, aunque hoy el hub
-   sea single-user. Así el módulo Finanzas (Fase 2) hereda el aislamiento gratis.
-5. **Secrets solo en `.env`** (fuera de git, ver `.gitignore`). `core/env.ts` valida el entorno
-   al arrancar y **mata el proceso** si falta algo — nunca corre a medio configurar.
+## The AI "Brain": Total Freedom
 
-Busca los comentarios `// FASE 2:` (dónde entrará cifrado at-rest) y `// FASE 3:` (dónde entrará
-el tool-calling de Jarvis) para ver los puntos de extensión ya marcados.
+AI shouldn't be a luxury or depend exclusively on a single external service. Sky Anime lets you switch providers with a single click based on your needs:
 
-### ¿Por qué Lucia y no Auth.js / Firebase Auth?
-Lucia corre **en mi propio backend**. Veo y controlo cómo funciona la sesión (tabla, cookie,
-expiry) en vez de delegar en un servicio externo. Mismo principio de independencia que el
-AIProvider, y aprendo el mecanismo real de auth — que es el objetivo.
+* **Local Mode (Default - Ollama + Qwen 7B):** Free, 100% private, zero token cost, and runs offline.
+* **Claude Mode (Anthropic):** For when you need maximum power from a top-tier model.
 
-## Stack
+If one provider goes down, your hub keeps running. You stay in control.
 
-| Capa | Elección |
-|------|----------|
-| Monorepo | pnpm workspaces + Turborepo |
-| Frontend | React 19 + TypeScript + Vite + Tailwind (dark mode) |
-| Backend | Node + TypeScript + Fastify |
-| DB | Postgres + Prisma (migraciones tipadas) |
-| Auth | Lucia + argon2 + cookies httpOnly/SameSite |
-| IA | AIProvider → Ollama/Qwen local (default) + Claude |
-| Tests | Vitest (servicios) + Supertest (API) |
+---
 
-## Estructura
+## Security & Architecture Decisions
 
-```
-apps/
-  web/    React + Vite + Tailwind
-  api/    Fastify + Prisma
-packages/
-  shared/ tipos/DTOs/contratos (fuente única de verdad front+back)
-  ai/     AIProvider: interfaz + OllamaProvider + ClaudeProvider + registry
-```
+This project is engineered as the foundation for something much larger, so security isn't an afterthought—it's built into the ground floor:
 
-## Arrancar en local
+1. **Hardened Passwords:** Using `argon2id` to resist GPU cracking significantly better than traditional bcrypt.
+2. **First-Party Sessions (Lucia Auth):** Zero opaque external dependencies. Sessions live in your database with cookies protected against XSS and CSRF (`httpOnly`, `SameSite=Lax`).
+3. **Strict Isolation:** Every record is scoped to your `userId`.
+4. **Server Validation:** Powered by `Zod`—nothing hits the database without being validated server-side first.
 
-Requisitos: Node ≥20, pnpm, Docker (para Postgres). Opcional: Ollama para IA local.
+---
+
+## Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Monorepo** | pnpm workspaces + Turborepo |
+| **Frontend** | React 19 + TypeScript + Vite + Tailwind CSS (Dark Mode) |
+| **Backend** | Node.js + TypeScript + Fastify |
+| **Database** | PostgreSQL + Prisma ORM |
+| **Authentication** | Lucia Auth + argon2 |
+| **Artificial Intelligence** | `packages/ai` (Ollama local by default / Claude API) |
+| **Testing** | Vitest + Supertest |
+
+---
+
+## Running Locally
+
+### Prerequisites
+* Node.js (≥20)
+* pnpm
+* Docker (for the Postgres database)
+* (Optional) Ollama if you want to run the AI locally.
+
+### Quick Start
 
 ```bash
-# 1. Instalar deps
+# 1. Clone and install dependencies:
 pnpm install
 
-# 2. Configurar entorno
-cp .env.example .env        # rellena AUTH_SECRET con algo largo y aleatorio
+# 2. Configure environment:
+cp .env.example .env
+# Make sure to set AUTH_SECRET to a long, random string
 
-# 3. Levantar Postgres local
+# 3. Start database and run migrations:
 pnpm db:up
-
-# 4. Migrar DB (crea las tablas)
 pnpm --filter @hub/api prisma:migrate
 
-# 5. Arrancar todo (web :5173 + api :3000)
+# 4. Start development server:
 pnpm dev
 ```
 
-Para IA local: `ollama run qwen2.5:7b` (default). Para usar Claude, pon `ANTHROPIC_API_KEY`
-en `.env` y elige "Claude" en el selector del chat.
+* Frontend running at: http://localhost:5173
+* API running at: http://localhost:3000
 
-## Verificar
+> **AI Setup:** For local AI, run `ollama run qwen2.5:7b`. To use Claude, add your `ANTHROPIC_API_KEY` to `.env` and switch to Claude in the chat dropdown.
 
-- Registrar usuario → login → crear una nota, cambiar su estado, borrarla.
-- Chat IA: mandar mensaje con Ollama corriendo (0 tokens). Cambiar selector a Claude → responde Claude.
-- Ruta protegida sin sesión devuelve 401. Cookie es httpOnly (no visible desde `document.cookie`).
-- `pnpm test` (servicios + registry IA) en verde.
+---
 
 ## Roadmap
 
-- **Fase 1 (este repo):** base + auth + 3 módulos (Notas ✅, Anime, Books) + capa IA + deploy.
-- **Fase 2:** módulo Finanzas → cifrado at-rest, audit log.
-- **Fase 3:** Jarvis — voz + tool-calling (el agente actúa sobre los módulos vía tools tipados).
-- **Fase 4:** infra hosting IA — acceso IA externo seguro + auditado.
+* [x] **Phase 1 (Current):** Solid base, Auth, hybrid AI layer, and core modules (Notes, Anime, Books).
+* [ ] **Phase 2:** Finance Module (with encryption at-rest for maximum privacy) and Audit Logging.
+* [ ] **Phase 3:** Jarvis Mode — Voice commands and tool-calling so the AI can interact directly with your modules (e.g., "Add this anime to my list").
+* [ ] **Phase 4:** Music module, additional hobby tools, and cloud deployment with secure AI access.
