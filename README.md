@@ -3,7 +3,7 @@
 A modular, private hub for your anime, books and notes, with an AI assistant that
 knows what you've saved. Runs local-first (Ollama) or with Claude.
 
-**Live:** https://<your-vercel-domain> · **Stack:** React 19 · Fastify · Prisma · Postgres · Lucia
+**Live:** https://Skyanime.net · **Stack:** React 19 · Fastify · Prisma · Postgres · Lucia
 
 ---
 
