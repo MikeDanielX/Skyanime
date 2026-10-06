@@ -5,8 +5,8 @@ import type { TrendingAnime } from "./anilist";
 import type { DiscoverBook } from "./openlibrary";
 
 // Ancho de card de las filas (AnimeRow, BookRow, Schedule). Fluido en móvil
-// (~2 cards visibles), fijo desde sm para que no crezca sin fin en monitores anchos.
-export const CARD_W = "w-[42vw] sm:w-[220px] lg:w-[260px]";
+// (~2 cards visibles), escalonado por breakpoint hasta ultrawide (3xl).
+export const CARD_W = "w-[42vw] sm:w-[220px] lg:w-[260px] 2xl:w-[280px] 3xl:w-[320px]";
 
 // Shell reutilizable: scroller horizontal con flechas al hover (paridad SkyAnime).
 // Flechas solo en md+: en táctil no hay hover y se navega con swipe.

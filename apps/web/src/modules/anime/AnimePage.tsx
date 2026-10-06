@@ -333,7 +333,7 @@ export function AnimePage() {
     : null;
 
   return (
-    <div className="-m-4 md:-m-8">
+    <div className="-m-4 md:-m-8 3xl:-m-16">
       <Hero
         imageUrl={heroImage(featured)}
         fallbackImageUrl={hiResCover(featured?.coverImageUrl)}
@@ -377,7 +377,7 @@ export function AnimePage() {
         onSlide={setSlide}
       />
 
-      <div className="space-y-10 px-4 py-8 md:px-8 md:py-10">
+      <div className="space-y-10 px-4 py-8 md:px-8 md:py-10 3xl:px-16 3xl:py-14">
         <SearchPill
           id={SEARCH_ID}
           value={term}
@@ -616,9 +616,9 @@ export function AnimePage() {
           <p className="mb-6 text-sm text-slate-500">
             Arrastra una card a una fila de arriba para guardarla · o haz click para añadirla.
           </p>
-          {/* Schedule idéntico al landing (tabs por día). Container mete el mismo padding (px-4 md:px-8):
+          {/* Schedule idéntico al landing (tabs por día). Container mete el mismo padding (px-4 md:px-8 3xl:px-16):
               se compensa el del padre. Card: click/drag guarda en vez de /login. */}
-          <div className="-mx-4 mb-10 md:-mx-8">
+          <div className="-mx-4 mb-10 md:-mx-8 3xl:-mx-16">
             <ProgrammingSection
               wrap={(anime, card) => {
                 const r = toResult(anime);

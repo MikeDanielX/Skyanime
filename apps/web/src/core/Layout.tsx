@@ -7,7 +7,7 @@ import { WEB_MODULES } from "../modules/registry";
 // Layout con NAVBAR superior (estilo mockup SkyAnime opción C). La nav se genera
 // desde el registro de módulos + entradas del core (Home, Chat). Añadir módulo →
 // aparece aquí solo. El contenido va full-bleed debajo (las páginas usan
-// -m-4 md:-m-8, espejo del padding de <main>). En móvil (<md) los links van a un
+// -m-4 md:-m-8 3xl:-m-16, espejo del padding de <main>). En móvil (<md) los links van a un
 // menú hamburguesa: en una fila no caben y ensanchaban toda la página.
 function Icon({ name }: { name: string }) {
   const map = Icons as unknown as Record<string, Icons.LucideIcon>;
@@ -42,7 +42,7 @@ export function Layout() {
     <div className="min-h-screen">
       {/* NAVBAR superior sticky (mockup opción C) */}
       <nav className="sticky top-0 z-30 border-b border-white/5 bg-surface/80 backdrop-blur-md">
-        <div className="flex items-center gap-4 px-4 py-3 md:gap-6 md:px-8">
+        <div className="flex items-center gap-4 px-4 py-3 md:gap-6 md:px-8 3xl:px-16">
           <button
             onClick={() => setMenuOpen((o) => !o)}
             aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
@@ -101,8 +101,7 @@ export function Layout() {
         )}
       </nav>
 
-      {/* max-w: en monitores muy anchos el contenido no se estira sin fin. */}
-      <main className="mx-auto max-w-[1920px] p-4 md:p-8">
+      <main className="p-4 md:p-8 3xl:p-16">
         <Outlet />
       </main>
     </div>

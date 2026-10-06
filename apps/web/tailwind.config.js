@@ -4,6 +4,11 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      // 3xl: monitores ultrawide / 4K. Cards, pósters y paddings crecen en vez de
+      // dejar la pantalla medio vacía.
+      screens: {
+        "3xl": "2200px",
+      },
       colors: {
         // Paleta neutra del hub. Superficie + acento.
         surface: {

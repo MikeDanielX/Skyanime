@@ -315,7 +315,7 @@ export function BooksPage() {
     : null;
 
   return (
-    <div className="-m-4 md:-m-8">
+    <div className="-m-4 md:-m-8 3xl:-m-16">
       <Hero
         imageUrl={featured?.coverImageUrl ?? null}
         slideKey={featured?.id}
@@ -352,7 +352,7 @@ export function BooksPage() {
         onSlide={setSlide}
       />
 
-      <div className="space-y-10 px-4 py-8 md:px-8 md:py-10">
+      <div className="space-y-10 px-4 py-8 md:px-8 md:py-10 3xl:px-16 3xl:py-14">
         <SearchPill
           id={SEARCH_ID}
           value={term}

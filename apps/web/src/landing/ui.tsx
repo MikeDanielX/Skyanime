@@ -6,9 +6,9 @@ export function cx(...parts: Array<string | false | null | undefined>): string {
 }
 
 // Contenedor de ancho completo con padding responsive. Mismo padding que el
-// layout logueado (p-4 md:p-8) para que el Schedule compartido case en ambos.
+// layout logueado (p-4 md:p-8 3xl:p-16) para que el Schedule compartido case en ambos.
 export function Container({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cx("w-full px-4 md:px-8", className)}>{children}</div>;
+  return <div className={cx("w-full px-4 md:px-8 3xl:px-16", className)}>{children}</div>;
 }
 
 interface SectionProps {
@@ -25,7 +25,7 @@ export function Section({ title, children, className, rightContent }: SectionPro
       <Container>
         {title && (
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="border-l-4 border-red-600 pl-2 text-2xl font-bold">{title}</h2>
+            <h2 className="border-l-4 border-red-600 pl-2 text-2xl font-bold 3xl:text-3xl">{title}</h2>
             {rightContent}
           </div>
         )}

@@ -70,8 +70,8 @@ export function Hero({ slides, children }: { slides?: HeroSlide[]; children?: Re
           <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
           <div className="absolute bottom-0 h-64 w-full bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent" />
 
-          <div className="absolute inset-0 z-10 flex w-full flex-col justify-end px-4 pb-24 md:w-1/2 md:px-8 md:pb-56">
-            <h1 className="mb-3 text-2xl font-bold drop-shadow-lg sm:text-4xl md:text-5xl">
+          <div className="absolute inset-0 z-10 flex w-full flex-col justify-end px-4 pb-24 md:w-1/2 md:max-w-3xl md:px-8 md:pb-56 3xl:px-16">
+            <h1 className="mb-3 text-2xl font-bold drop-shadow-lg sm:text-4xl md:text-5xl 3xl:text-6xl">
               {current.title}
             </h1>
             <p className="mb-4 line-clamp-2 text-base text-gray-200 drop-shadow-md md:mb-6 md:line-clamp-3">

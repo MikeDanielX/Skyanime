@@ -58,12 +58,12 @@ export function Hero({
       )}
       <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
       <div className="absolute bottom-0 h-64 w-full bg-gradient-to-t from-surface via-surface/70 to-transparent" />
-      <div className="absolute inset-0 z-10 flex w-full flex-col justify-end px-4 pb-16 md:w-1/2 md:px-8 md:pb-40">
+      <div className="absolute inset-0 z-10 flex w-full flex-col justify-end px-4 pb-16 md:w-1/2 md:max-w-3xl md:px-8 md:pb-40 3xl:px-16">
         {eyebrow && (
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-accent">{eyebrow}</p>
         )}
         {chips && <div className="mb-3 flex items-center gap-2">{chips}</div>}
-        <h1 className="mb-3 text-2xl font-bold drop-shadow-lg sm:text-3xl md:text-5xl">{title}</h1>
+        <h1 className="mb-3 text-2xl font-bold drop-shadow-lg sm:text-3xl md:text-5xl 3xl:text-6xl">{title}</h1>
         {subtitle && <p className="mb-6 line-clamp-3 text-slate-200 drop-shadow-md">{subtitle}</p>}
         {actions && <div className="flex flex-wrap gap-3">{actions}</div>}
         {slideCount > 1 && (
@@ -187,7 +187,7 @@ export function PosterTile({
 }) {
   return (
     <div
-      className="group relative w-32 shrink-0 snap-start sm:w-40"
+      className="group relative w-32 shrink-0 snap-start sm:w-40 2xl:w-44 3xl:w-52"
       draggable={draggable}
       onDragStart={(e) => {
         // Necesario para que Firefox inicie el drag; el payload real lo lleva el estado.
@@ -203,7 +203,7 @@ export function PosterTile({
         title={title}
         loading="lazy"
         onClick={onClick}
-        className={`h-48 w-32 rounded-lg object-cover object-top transition sm:h-56 sm:w-40 ${draggable ? "cursor-grab active:cursor-grabbing" : ""} ${
+        className={`h-48 w-32 rounded-lg object-cover object-top transition sm:h-56 sm:w-40 2xl:h-64 2xl:w-44 3xl:h-72 3xl:w-52 ${draggable ? "cursor-grab active:cursor-grabbing" : ""} ${
           dimmed
             ? "opacity-60"
             : `${onClick && !draggable ? "cursor-pointer" : ""} group-hover:scale-105 group-hover:ring-2 group-hover:ring-accent`
@@ -273,7 +273,7 @@ export function PosterRow({
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold">{title}</h2>
+        <h2 className="text-xl font-bold 3xl:text-2xl">{title}</h2>
         {right}
       </div>
       <div
