@@ -8,19 +8,29 @@ import { Hero, HeroButton, ScoreChip, PosterRow, PosterTile, SearchPill } from "
 import { ANIME_STATUS_LABEL, ANIME_STATUS_ORDER, ANIME_STATUS_TONE } from "./status";
 // Descubrir: mismo browse anónimo que el landing (AniList, keyless).
 import {
-  fetchSchedule,
   fetchSeasonAnime,
   getCurrentSeason,
   getNextSeason,
   seasonLabel,
 } from "../../landing/anilist";
+// Schedule: el MISMO componente del landing (tabs por día + card), con wrap propio.
+import { ProgrammingSection } from "../../landing/sections";
 
-// Fila de descubrimiento (Schedule / temporadas). items ya normalizados a
+// Fila de descubrimiento (temporadas). items ya normalizados a
 // AnimeSearchResult para casar 1:1 con add() y la dedup por (source, externalId).
 interface DiscoveryRow {
   title: string;
   items: AnimeSearchResult[];
 }
+
+// AniList (landing) → AnimeSearchResult, para que add()/dedup funcionen igual.
+const toResult = (a: { id: number; title: string; image: string }): AnimeSearchResult => ({
+  source: "anilist",
+  externalId: String(a.id),
+  title: a.title,
+  coverImageUrl: a.image || null,
+  bannerImageUrl: null,
+});
 
 const HERO_INTERVAL = 6000;
 const SEARCH_ID = "anime-search";
@@ -43,7 +53,7 @@ export function AnimePage() {
   // o sección). Secciones personalizadas del usuario + estado de edición inline.
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [addTarget, setAddTarget] = useState<AddTarget | null>(null);
-  // Descubrir: filas Schedule/temporadas (AniList). draggingDiscovery = la card de
+  // Descubrir: filas de temporadas (AniList; el Schedule va aparte). draggingDiscovery = la card de
   // descubrimiento que se arrastra (canal aparte de draggingId, que mueve guardados).
   const [discovery, setDiscovery] = useState<DiscoveryRow[]>([]);
   const [discoveryLoading, setDiscoveryLoading] = useState(true);
@@ -66,30 +76,20 @@ export function AnimePage() {
     void loadSections();
   }, []);
 
-  // Descubrir (AniList, browse anónimo igual que el landing): Schedule de hoy +
-  // esta temporada + la siguiente. Se normaliza a AnimeSearchResult (source
+  // Descubrir (AniList, browse anónimo igual que el landing): esta temporada +
+  // la siguiente. Se normaliza a AnimeSearchResult (source
   // "anilist") para que add()/moveTo dedup y guardado funcionen sin cambios.
   useEffect(() => {
     let cancelled = false;
     const cur = getCurrentSeason();
     const nxt = getNextSeason();
-    const toResult = (a: { id: number; title: string; image: string }): AnimeSearchResult => ({
-      source: "anilist",
-      externalId: String(a.id),
-      title: a.title,
-      coverImageUrl: a.image || null,
-      bannerImageUrl: null,
-    });
     Promise.allSettled([
-      fetchSchedule(0),
       fetchSeasonAnime(cur.season, cur.year, 20),
       fetchSeasonAnime(nxt.season, nxt.year, 20),
     ])
-      .then(([sched, thisS, nextS]) => {
+      .then(([thisS, nextS]) => {
         if (cancelled) return;
         const rows: DiscoveryRow[] = [];
-        if (sched.status === "fulfilled" && sched.value.length)
-          rows.push({ title: "Schedule", items: sched.value.map(toResult) });
         if (thisS.status === "fulfilled" && thisS.value.length)
           rows.push({ title: `This Season · ${seasonLabel(cur.season, cur.year)}`, items: thisS.value.map(toResult) });
         if (nextS.status === "fulfilled" && nextS.value.length)
@@ -616,6 +616,34 @@ export function AnimePage() {
           <p className="mb-6 text-sm text-slate-500">
             Arrastra una card a una fila de arriba para guardarla · o haz click para añadirla.
           </p>
+          {/* Schedule idéntico al landing (tabs por día). Container ya mete padding:
+              se compensa el px-8 del padre. Card: click/drag guarda en vez de /login. */}
+          <div className="-mx-8 mb-10">
+            <ProgrammingSection
+              wrap={(anime, card) => {
+                const r = toResult(anime);
+                const saved = savedIds.has(key(r));
+                return (
+                  <div
+                    draggable={!saved}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", r.title);
+                      e.dataTransfer.effectAllowed = "move";
+                      startDragDiscovery(r);
+                    }}
+                    onDragEnd={() => setDraggingDiscovery(null)}
+                    onClick={saved ? undefined : () => add(r)}
+                    className={`relative ${saved ? "opacity-50" : "cursor-grab active:cursor-grabbing"}`}
+                  >
+                    {card}
+                    <div className="absolute right-2 top-2 z-10">
+                      <StatusBadge label={saved ? "Guardado" : "+ Añadir"} tone={saved ? "green" : "blue"} />
+                    </div>
+                  </div>
+                );
+              }}
+            />
+          </div>
           {discoveryLoading ? (
             <p className="text-sm text-slate-500">Cargando descubrimiento…</p>
           ) : (

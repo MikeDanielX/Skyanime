@@ -1,98 +1,162 @@
-# Sky Anime — Your Personal AI Hub
+# Sky Anime — Personal AI Hub
 
-Welcome to Sky Anime. This isn't just another platform for tracking shows or reading lists: it's your centralized digital space. A modular Personal Hub where you organize your daily life (anime, books, notes, and more) assisted by an AI you control.
+A modular, private hub for your anime, books and notes, with an AI assistant that
+knows what you've saved. Runs local-first (Ollama) or with Claude.
 
-Manage your passions, capture daily notes, and chat with an AI assistant that understands the full context of everything you store.
-
----
-
-## What is this about?
-
-The idea is simple: one single place for all your stuff. Instead of relying on a dozen different apps, Sky Anime brings them together into a smooth, private experience.
-
-Currently includes:
-
-* **Notes:** Capture ideas and quick thoughts on the fly with full security.
-* **Contextual AI Chat:** Talk to an AI that knows what you have saved in your hub to deliver better answers.
-* **Anime Module:** Track what you're watching, paused, or dropped, and build custom sections or a personalized Top 10 list.
-* **Book Module:** Discover trending titles, check bestsellers, and organize your personal library your way.
-
-> **The best part?** Everything is built modally. If you want to plug in a module for Finances, Music, or any other hobby tomorrow, it connects directly without breaking the core app.
+**Live:** https://<your-vercel-domain> · **Stack:** React 19 · Fastify · Prisma · Postgres · Lucia
 
 ---
 
-## The AI "Brain": Total Freedom
+## Features
 
-AI shouldn't be a luxury or depend exclusively on a single external service. Sky Anime lets you switch providers with a single click based on your needs:
+| Module | What it does |
+| :--- | :--- |
+| **Notes** | Quick private notes, scoped per user. |
+| **Anime** | Search any anime, track status (watching / paused / dropped…), custom sections, drag-to-reorder, Top 10. |
+| **Books** | Search Open Library, organize your library into custom sections. |
+| **AI Chat** | Chat with an AI that gets your hub data as context. Switch provider per message. |
+| **Public landing** | Trending anime, seasonal anime, airing schedule, trending books, bestsellers and new releases. No login needed. |
 
-* **Local Mode (Default - Ollama + Qwen 7B):** Free, 100% private, zero token cost, and runs offline.
-* **Claude Mode (Anthropic):** For when you need maximum power from a top-tier model.
-
-If one provider goes down, your hub keeps running. You stay in control.
+Modules plug in through a registry ([apps/api/src/modules/registry.ts](apps/api/src/modules/registry.ts)).
+Adding one = new folder + one line in the registry. The core stays untouched.
 
 ---
 
-## Security & Architecture Decisions
+## External APIs
 
-This project is engineered as the foundation for something much larger, so security isn't an afterthought—it's built into the ground floor:
+| API | Used for | Where | Key needed |
+| :--- | :--- | :--- | :--- |
+| [AniList GraphQL](https://anilist.gitbook.io/anilist-apiv2-docs) | Anime search (primary), landing: trending, season, airing schedule | `apps/api/.../anime.source.ts`, `apps/web/src/landing/anilist.ts` | No |
+| [Kitsu](https://kitsu.docs.apiary.io) | Anime search **fallback** when AniList fails (403 / timeout) | `anime.source.ts` | No |
+| [TMDB](https://developer.themoviedb.org) | Enriches anime results with HD poster + backdrop | `tmdb.source.ts`, `backfill-tmdb.ts` | `TMDB_READ_TOKEN` (optional) |
+| [Open Library](https://openlibrary.org/developers/api) | Book search, covers, landing trending / bestsellers / new releases | `books.source.ts`, `apps/web/src/landing/openlibrary.ts` | No |
+| [Ollama](https://github.com/ollama/ollama/blob/main/docs/api.md) | Local LLM (`/api/chat`, default `qwen2.5:7b`) | `packages/ai/src/ollama.ts` | No |
+| [Anthropic Claude](https://docs.anthropic.com) | Cloud LLM via `@anthropic-ai/sdk` | `packages/ai/src/claude.ts` | `ANTHROPIC_API_KEY` |
 
-1. **Hardened Passwords:** Using `argon2id` to resist GPU cracking significantly better than traditional bcrypt.
-2. **First-Party Sessions (Lucia Auth):** Zero opaque external dependencies. Sessions live in your database with cookies protected against XSS and CSRF (`httpOnly`, `SameSite=Lax`).
-3. **Strict Isolation:** Every record is scoped to your `userId`.
-4. **Server Validation:** Powered by `Zod`—nothing hits the database without being validated server-side first.
+> Same idea for media and AI: every external source sits behind an interface,
+> so if one provider fails another one can answer.
+
+---
+
+## Hub API (own endpoints)
+
+All routes except `/health`, `/modules` and `/auth/*` require a session cookie.
+In production they are served under `/api`.
+
+| Method | Route | Description |
+| :--- | :--- | :--- |
+| GET | `/health` | Liveness check |
+| GET | `/modules` | Module manifest (frontend builds nav from it) |
+| POST | `/auth/register` · `/auth/login` · `/auth/logout` | Session auth |
+| GET | `/auth/me` | Current user |
+| GET | `/ai/providers` | Available AI providers |
+| POST | `/ai/chat` | Send a message to the chosen provider |
+| GET / POST | `/notes` | List / create notes |
+| PATCH / DELETE | `/notes/:id` | Update / delete note |
+| GET | `/anime/search?q=` | Search external sources |
+| GET / POST | `/anime` | List / save anime |
+| PATCH / DELETE | `/anime/:id` | Update status / remove |
+| GET / POST | `/anime/sections` | List / create custom sections |
+| PATCH | `/anime/sections/reorder` · `/anime/sections/:id` | Reorder / rename |
+| DELETE | `/anime/sections/:id` | Delete section |
+| — | `/books/...` | Same shape as `/anime` |
+
+---
+
+## Security
+
+- **Passwords:** `argon2id` (`@node-rs/argon2`), more resistant to GPU cracking than bcrypt.
+- **Sessions:** Lucia, stored in Postgres. Cookies are `httpOnly`, `SameSite=Lax`, `Secure` in prod.
+- **Isolation:** every query is scoped to `userId`.
+- **Validation:** Zod on every request body and on env vars at boot. If config is invalid the process exits.
+- **Secrets:** only in `.env` / Vercel dashboard, never in git.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
+| Layer | Tech |
 | :--- | :--- |
-| **Monorepo** | pnpm workspaces + Turborepo |
-| **Frontend** | React 19 + TypeScript + Vite + Tailwind CSS (Dark Mode) |
-| **Backend** | Node.js + TypeScript + Fastify |
-| **Database** | PostgreSQL + Prisma ORM |
-| **Authentication** | Lucia Auth + argon2 |
-| **Artificial Intelligence** | `packages/ai` (Ollama local by default / Claude API) |
-| **Testing** | Vitest + Supertest |
+| Monorepo | pnpm workspaces + Turborepo |
+| Frontend | React 19, TypeScript, Vite, Tailwind |
+| Backend | Node ≥20, Fastify 5, TypeScript |
+| DB | PostgreSQL + Prisma (Docker local, Neon in prod) |
+| Auth | Lucia + argon2 |
+| AI | `packages/ai` — `AIProvider` interface (Ollama / Claude) |
+| Tests | Vitest + Supertest |
+| Deploy | Vercel (SPA + Fastify as one serverless function) |
+
+---
+
+## Project Structure
+
+```
+apps/
+  api/        Fastify API (core/ = auth, ai, db · modules/ = notes, anime, books)
+  web/        React SPA (core/, modules/, landing/)
+packages/
+  ai/         AIProvider + Ollama/Claude adapters
+  shared/     Types + Zod schemas shared by api and web
+api/index.ts  Vercel serverless entry (wraps the Fastify app)
+```
 
 ---
 
 ## Running Locally
 
-### Prerequisites
-* Node.js (≥20)
-* pnpm
-* Docker (for the Postgres database)
-* (Optional) Ollama if you want to run the AI locally.
-
-### Quick Start
+**Requirements:** Node ≥20, pnpm, Docker. Optional: Ollama.
 
 ```bash
-# 1. Clone and install dependencies:
 pnpm install
-
-# 2. Configure environment:
-cp .env.example .env
-# Make sure to set AUTH_SECRET to a long, random string
-
-# 3. Start database and run migrations:
-pnpm db:up
+cp .env.example .env          # set AUTH_SECRET (≥16 chars, random)
+pnpm db:up                    # Postgres in Docker
 pnpm --filter @hub/api prisma:migrate
-
-# 4. Start development server:
 pnpm dev
 ```
 
-* Frontend running at: http://localhost:5173
-* API running at: http://localhost:3000
+- Web → http://localhost:5173
+- API → http://localhost:3000
 
-> **AI Setup:** For local AI, run `ollama run qwen2.5:7b`. To use Claude, add your `ANTHROPIC_API_KEY` to `.env` and switch to Claude in the chat dropdown.
+**AI:** `ollama run qwen2.5:7b` for local mode, or set `ANTHROPIC_API_KEY` and
+pick Claude in the chat dropdown.
+
+### Scripts
+
+| Command | Does |
+| :--- | :--- |
+| `pnpm dev` | Run web + api in watch mode |
+| `pnpm build` | Build all packages |
+| `pnpm test` | Vitest |
+| `pnpm lint` / `pnpm typecheck` | Lint / type check |
+| `pnpm db:up` / `pnpm db:down` | Start / stop Postgres |
+
+### Environment Variables
+
+| Var | Required | Notes |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | ✅ | Postgres URL (pooled URL in prod) |
+| `DIRECT_URL` | prod | Non-pooled URL, only for `prisma migrate deploy` |
+| `AUTH_SECRET` | ✅ | ≥16 chars |
+| `WEB_ORIGIN` | dev | CORS origin, default `http://localhost:5173` |
+| `AI_DEFAULT_PROVIDER` | — | `ollama` (default) or `claude` |
+| `OLLAMA_BASE_URL` / `OLLAMA_MODEL` | — | Default `localhost:11434` / `qwen2.5:7b` |
+| `ANTHROPIC_API_KEY` / `CLAUDE_MODEL` | — | Only for Claude mode |
+| `TMDB_READ_TOKEN` | — | Empty = no TMDB enrichment |
+| `VITE_API_URL` | — | Dev: `http://localhost:3000` · Prod: `/api` |
+
+---
+
+## Deploy (Vercel + Neon)
+
+1. Create a Neon DB. Put the pooled URL (`-pooler`, `pgbouncer=true&connection_limit=1`) in `DATABASE_URL` and the direct URL in `DIRECT_URL`.
+2. Add the env vars in the Vercel dashboard.
+3. Push. `vercel.json` builds shared → ai → api → web and rewrites `/api/*` to the serverless function.
 
 ---
 
 ## Roadmap
 
-* [x] **Phase 1 (Current):** Solid base, Auth, hybrid AI layer, and core modules (Notes, Anime, Books).
-* [ ] **Phase 2:** Finance Module (with encryption at-rest for maximum privacy) and Audit Logging.
-* [ ] **Phase 3:** Jarvis Mode — Voice commands and tool-calling so the AI can interact directly with your modules (e.g., "Add this anime to my list").
-* [ ] **Phase 4:** Music module, additional hobby tools, and cloud deployment with secure AI access.
+- [x] **Phase 1:** Auth, hybrid AI layer, Notes / Anime / Books, public landing, Vercel deploy
+- [ ] **Phase 2:** Finance module (encryption at rest) + audit log
+- [ ] **Phase 3:** "Jarvis mode": voice + tool-calling ("add this anime to my list")
+- [ ] **Phase 4:** Music module, more hobbies, secure cloud AI access

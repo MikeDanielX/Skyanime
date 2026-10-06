@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Section, Card, Badge } from "./ui";
 import { AnimeRow, BookRow, ScrollRow } from "./rows";
@@ -78,7 +78,12 @@ function getDayOffsets(): { label: string; offset: number }[] {
   return dayLabels.map((label, i) => ({ label, offset: mondayOffset + i }));
 }
 
-export function ProgrammingSection() {
+// Envoltorio de cada card. Landing: link a /login. Logueado (AnimePage): click/drag
+// para guardar — así ambas vistas comparten tabs, fetch y card.
+type ScheduleWrap = (anime: ScheduleAnime, card: ReactNode) => ReactNode;
+const defaultWrap: ScheduleWrap = (_anime, card) => <Link to="/login">{card}</Link>;
+
+export function ProgrammingSection({ wrap = defaultWrap }: { wrap?: ScheduleWrap } = {}) {
   const [days] = useState(getDayOffsets);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [cache, setCache] = useState<Record<number, ScheduleAnime[]>>({});
@@ -158,7 +163,8 @@ export function ProgrammingSection() {
         <ScrollRow loading={false}>
           {items.map((anime) => (
             <div key={`${anime.id}-${anime.episode}`} className="w-[260px] shrink-0 snap-start">
-              <Link to="/login">
+              {wrap(
+                anime,
                 <Card className="relative transition-all hover:z-10 hover:scale-105 hover:shadow-2xl">
                   <img src={anime.image} alt={anime.title} className="aspect-[3/4] w-full object-cover" />
                   {anime.format && (
@@ -172,8 +178,8 @@ export function ProgrammingSection() {
                       Ep {anime.episode} · {formatTime(anime.airingAt)}
                     </p>
                   </div>
-                </Card>
-              </Link>
+                </Card>,
+              )}
             </div>
           ))}
         </ScrollRow>
