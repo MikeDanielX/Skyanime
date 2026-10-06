@@ -65,12 +65,12 @@ export function Hero({ slides, children }: { slides?: HeroSlide[]; children?: Re
             key={current.id}
             src={current.image}
             alt={current.title}
-            className="h-[56vh] w-full object-cover object-top md:h-[80vh]"
+            className="h-[clamp(360px,60vh,560px)] w-full object-cover object-top md:h-[clamp(480px,80vh,880px)]"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
           <div className="absolute bottom-0 h-64 w-full bg-gradient-to-t from-gray-900 via-gray-900/70 to-transparent" />
 
-          <div className="absolute inset-0 z-10 flex w-full flex-col justify-end px-8 pb-32 md:w-1/2 md:pb-56">
+          <div className="absolute inset-0 z-10 flex w-full flex-col justify-end px-4 pb-24 md:w-1/2 md:px-8 md:pb-56">
             <h1 className="mb-3 text-2xl font-bold drop-shadow-lg sm:text-4xl md:text-5xl">
               {current.title}
             </h1>
@@ -82,14 +82,14 @@ export function Hero({ slides, children }: { slides?: HeroSlide[]; children?: Re
               <button
                 type="button"
                 onClick={goToLogin}
-                className="rounded-lg bg-red-600 px-6 py-2.5 text-sm font-bold transition hover:bg-red-700"
+                className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-bold transition hover:bg-red-700 md:px-6"
               >
                 Watch Now
               </button>
               <button
                 type="button"
                 onClick={goToLogin}
-                className="rounded-lg border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-bold backdrop-blur-md transition hover:bg-white/20"
+                className="rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold backdrop-blur-md transition hover:bg-white/20 md:px-6"
               >
                 More Info
               </button>
@@ -122,7 +122,7 @@ export function Hero({ slides, children }: { slides?: HeroSlide[]; children?: Re
             type="button"
             onClick={prev}
             aria-label="Previous"
-            className="absolute left-4 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-xl text-white transition hover:bg-black/70"
+            className="absolute left-4 top-1/2 z-20 hidden h-10 w-10 md:flex -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-xl text-white transition hover:bg-black/70"
           >
             ‹
           </button>
@@ -130,7 +130,7 @@ export function Hero({ slides, children }: { slides?: HeroSlide[]; children?: Re
             type="button"
             onClick={next}
             aria-label="Next"
-            className="absolute right-4 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-xl text-white transition hover:bg-black/70"
+            className="absolute right-4 top-1/2 z-20 hidden h-10 w-10 md:flex -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-xl text-white transition hover:bg-black/70"
           >
             ›
           </button>

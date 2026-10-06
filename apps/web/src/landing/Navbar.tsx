@@ -18,7 +18,7 @@ export function Navbar() {
     active ? "text-white" : "transition hover:text-white";
 
   return (
-    <nav className="fixed top-0 z-50 flex w-full items-center gap-6 border-b border-gray-800 bg-gray-900/95 px-6 py-3 backdrop-blur">
+    <nav className="fixed top-0 z-50 flex w-full items-center gap-3 border-b border-gray-800 bg-gray-900/95 px-4 py-3 backdrop-blur md:gap-6 md:px-6">
       <Link to="/" className="shrink-0 text-xl font-bold tracking-wider text-red-500">
         SkyAnime
       </Link>
@@ -34,7 +34,7 @@ export function Navbar() {
 
       <div className="flex-1" />
 
-      <form onSubmit={onSubmit} className="w-48 lg:w-64">
+      <form onSubmit={onSubmit} className="w-28 min-w-0 sm:w-48 lg:w-64">
         <Input
           type="text"
           placeholder="Search..."
@@ -45,7 +45,7 @@ export function Navbar() {
 
       <Link
         to="/login"
-        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700"
+        className="shrink-0 rounded-lg bg-red-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-red-700 md:px-4"
       >
         Sign In
       </Link>

@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Section, Card, Badge } from "./ui";
-import { AnimeRow, BookRow, ScrollRow } from "./rows";
+import { AnimeRow, BookRow, ScrollRow, CARD_W } from "./rows";
 import {
   fetchSchedule,
   fetchSeasonAnime,
@@ -124,13 +124,13 @@ export function ProgrammingSection({ wrap = defaultWrap }: { wrap?: ScheduleWrap
 
   return (
     <Section title="Schedule" className="mt-8 space-y-4">
-      <div className="mb-4 inline-flex rounded-full border border-gray-700 bg-gray-900/60 p-1">
+      <div className="no-scrollbar mb-4 inline-flex max-w-full overflow-x-auto rounded-full border border-gray-700 bg-gray-900/60 p-1">
         {days.map((day, i) => (
           <button
             key={day.label}
             type="button"
             onClick={() => setSelectedIdx(i)}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition sm:px-4 sm:py-2 ${
               i === selectedIdx ? "bg-red-600 text-white" : "text-gray-300 hover:bg-white/5"
             }`}
           >
@@ -158,11 +158,11 @@ export function ProgrammingSection({ wrap = defaultWrap }: { wrap?: ScheduleWrap
         <p className="text-sm text-gray-400">No anime scheduled for this day.</p>
       )}
 
-      {/* Mismo tamaño de card que This Season: fila horizontal w-[260px] (antes grid grande). */}
+      {/* Mismo tamaño de card que This Season: fila horizontal CARD_W (antes grid grande). */}
       {!loading && !error && items && items.length > 0 && (
         <ScrollRow loading={false}>
           {items.map((anime) => (
-            <div key={`${anime.id}-${anime.episode}`} className="w-[260px] shrink-0 snap-start">
+            <div key={`${anime.id}-${anime.episode}`} className={`${CARD_W} shrink-0 snap-start`}>
               {wrap(
                 anime,
                 <Card className="relative transition-all hover:z-10 hover:scale-105 hover:shadow-2xl">

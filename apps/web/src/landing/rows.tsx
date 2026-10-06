@@ -4,7 +4,12 @@ import { Card, SkeletonCard } from "./ui";
 import type { TrendingAnime } from "./anilist";
 import type { DiscoverBook } from "./openlibrary";
 
+// Ancho de card de las filas (AnimeRow, BookRow, Schedule). Fluido en móvil
+// (~2 cards visibles), fijo desde sm para que no crezca sin fin en monitores anchos.
+export const CARD_W = "w-[42vw] sm:w-[220px] lg:w-[260px]";
+
 // Shell reutilizable: scroller horizontal con flechas al hover (paridad SkyAnime).
+// Flechas solo en md+: en táctil no hay hover y se navega con swipe.
 // Lo usan AnimeRow, BookRow y el Schedule — misma UX y mismo tamaño de card.
 export function ScrollRow({ loading, children }: { loading: boolean; children: ReactNode }) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -19,7 +24,7 @@ export function ScrollRow({ loading, children }: { loading: boolean; children: R
     return (
       <div className="no-scrollbar flex gap-4 overflow-x-auto pb-4">
         {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="w-[260px] shrink-0">
+          <div key={i} className={`${CARD_W} shrink-0`}>
             <SkeletonCard />
           </div>
         ))}
@@ -39,7 +44,7 @@ export function ScrollRow({ loading, children }: { loading: boolean; children: R
         type="button"
         onClick={() => scroll(-1)}
         aria-label="Scroll left"
-        className="absolute left-0 top-0 flex h-full w-16 items-center justify-center bg-gradient-to-r from-black/80 via-black/60 to-transparent text-3xl text-white opacity-0 transition hover:from-black/90 hover:via-black/80 group-hover:opacity-100"
+        className="absolute left-0 top-0 hidden h-full w-16 md:flex items-center justify-center bg-gradient-to-r from-black/80 via-black/60 to-transparent text-3xl text-white opacity-0 transition hover:from-black/90 hover:via-black/80 group-hover:opacity-100"
       >
         ‹
       </button>
@@ -47,7 +52,7 @@ export function ScrollRow({ loading, children }: { loading: boolean; children: R
         type="button"
         onClick={() => scroll(1)}
         aria-label="Scroll right"
-        className="absolute right-0 top-0 flex h-full w-16 items-center justify-center bg-gradient-to-l from-black/80 via-black/60 to-transparent text-3xl text-white opacity-0 transition hover:from-black/90 hover:via-black/80 group-hover:opacity-100"
+        className="absolute right-0 top-0 hidden h-full w-16 md:flex items-center justify-center bg-gradient-to-l from-black/80 via-black/60 to-transparent text-3xl text-white opacity-0 transition hover:from-black/90 hover:via-black/80 group-hover:opacity-100"
       >
         ›
       </button>
@@ -78,7 +83,7 @@ export function AnimeRow({ items, loading }: { items: TrendingAnime[]; loading: 
   return (
     <ScrollRow loading={loading}>
       {items.map((anime) => (
-        <div key={anime.id} className="w-[260px] shrink-0 snap-start">
+        <div key={anime.id} className={`${CARD_W} shrink-0 snap-start`}>
           <AnimeCard anime={anime} />
         </div>
       ))}
@@ -106,7 +111,7 @@ export function BookRow({ items, loading }: { items: DiscoverBook[]; loading: bo
   return (
     <ScrollRow loading={loading}>
       {items.map((book) => (
-        <div key={book.openLibKey} className="w-[260px] shrink-0 snap-start">
+        <div key={book.openLibKey} className={`${CARD_W} shrink-0 snap-start`}>
           <BookCard book={book} />
         </div>
       ))}

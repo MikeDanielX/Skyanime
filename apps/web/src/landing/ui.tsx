@@ -5,9 +5,10 @@ export function cx(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(" ");
 }
 
-// Contenedor de ancho completo con padding responsive (paridad con SkyAnime).
+// Contenedor de ancho completo con padding responsive. Mismo padding que el
+// layout logueado (p-4 md:p-8) para que el Schedule compartido case en ambos.
 export function Container({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cx("w-full px-4 sm:px-6 lg:px-8", className)}>{children}</div>;
+  return <div className={cx("w-full px-4 md:px-8", className)}>{children}</div>;
 }
 
 interface SectionProps {

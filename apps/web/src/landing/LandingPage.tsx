@@ -50,7 +50,8 @@ export function LandingPage({ view = "anime" }: { view?: "anime" | "books" }) {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Navbar />
-      <main className="pt-14">
+      {/* max-w: en monitores muy anchos el contenido no se estira sin fin. */}
+      <main className="mx-auto max-w-[1920px] pt-14">
         {view === "books" ? (
           <div className="space-y-10 py-10">
             <Section title="Books">

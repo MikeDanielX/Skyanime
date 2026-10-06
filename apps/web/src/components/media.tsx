@@ -46,7 +46,7 @@ export function Hero({
           key={slideKey}
           src={imageUrl}
           alt=""
-          className="h-[56vh] w-full object-cover object-top md:h-[70vh]"
+          className="h-[clamp(320px,56vh,520px)] w-full object-cover object-top md:h-[clamp(420px,70vh,800px)]"
           onError={(e) => {
             if (fallbackImageUrl && e.currentTarget.src !== fallbackImageUrl) {
               e.currentTarget.src = fallbackImageUrl;
@@ -54,18 +54,18 @@ export function Hero({
           }}
         />
       ) : (
-        <div className="h-[56vh] w-full bg-gradient-to-br from-accent/30 to-surface md:h-[70vh]" />
+        <div className="h-[clamp(320px,56vh,520px)] w-full bg-gradient-to-br from-accent/30 to-surface md:h-[clamp(420px,70vh,800px)]" />
       )}
       <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent" />
       <div className="absolute bottom-0 h-64 w-full bg-gradient-to-t from-surface via-surface/70 to-transparent" />
-      <div className="absolute inset-0 z-10 flex w-full flex-col justify-end px-8 pb-28 md:w-1/2 md:pb-40">
+      <div className="absolute inset-0 z-10 flex w-full flex-col justify-end px-4 pb-16 md:w-1/2 md:px-8 md:pb-40">
         {eyebrow && (
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-accent">{eyebrow}</p>
         )}
         {chips && <div className="mb-3 flex items-center gap-2">{chips}</div>}
-        <h1 className="mb-3 text-3xl font-bold drop-shadow-lg md:text-5xl">{title}</h1>
+        <h1 className="mb-3 text-2xl font-bold drop-shadow-lg sm:text-3xl md:text-5xl">{title}</h1>
         {subtitle && <p className="mb-6 line-clamp-3 text-slate-200 drop-shadow-md">{subtitle}</p>}
-        {actions && <div className="flex gap-3">{actions}</div>}
+        {actions && <div className="flex flex-wrap gap-3">{actions}</div>}
         {slideCount > 1 && (
           <div className="mt-6 flex gap-1.5">
             {Array.from({ length: slideCount }).map((_, i) => (
@@ -104,7 +104,7 @@ export function HeroButton({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-bold transition ${styles}`}
+      className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition md:px-6 ${styles}`}
     >
       {icon}
       {children}
@@ -187,7 +187,7 @@ export function PosterTile({
 }) {
   return (
     <div
-      className="group relative w-40 shrink-0 snap-start"
+      className="group relative w-32 shrink-0 snap-start sm:w-40"
       draggable={draggable}
       onDragStart={(e) => {
         // Necesario para que Firefox inicie el drag; el payload real lo lleva el estado.
@@ -203,7 +203,7 @@ export function PosterTile({
         title={title}
         loading="lazy"
         onClick={onClick}
-        className={`h-56 w-40 rounded-lg object-cover object-top transition ${draggable ? "cursor-grab active:cursor-grabbing" : ""} ${
+        className={`h-48 w-32 rounded-lg object-cover object-top transition sm:h-56 sm:w-40 ${draggable ? "cursor-grab active:cursor-grabbing" : ""} ${
           dimmed
             ? "opacity-60"
             : `${onClick && !draggable ? "cursor-pointer" : ""} group-hover:scale-105 group-hover:ring-2 group-hover:ring-accent`
@@ -295,7 +295,7 @@ export function PosterRow({
               type="button"
               onClick={() => scroll(-1)}
               aria-label="Desplazar izquierda"
-              className="absolute left-0 top-0 flex h-full w-14 items-center justify-center rounded-l-xl bg-gradient-to-r from-surface/90 via-surface/60 to-transparent text-3xl text-white opacity-0 transition hover:from-surface group-hover:opacity-100"
+              className="absolute left-0 top-0 hidden h-full w-14 md:flex items-center justify-center rounded-l-xl bg-gradient-to-r from-surface/90 via-surface/60 to-transparent text-3xl text-white opacity-0 transition hover:from-surface group-hover:opacity-100"
             >
               ‹
             </button>
@@ -303,7 +303,7 @@ export function PosterRow({
               type="button"
               onClick={() => scroll(1)}
               aria-label="Desplazar derecha"
-              className="absolute right-0 top-0 flex h-full w-14 items-center justify-center rounded-r-xl bg-gradient-to-l from-surface/90 via-surface/60 to-transparent text-3xl text-white opacity-0 transition hover:from-surface group-hover:opacity-100"
+              className="absolute right-0 top-0 hidden h-full w-14 md:flex items-center justify-center rounded-r-xl bg-gradient-to-l from-surface/90 via-surface/60 to-transparent text-3xl text-white opacity-0 transition hover:from-surface group-hover:opacity-100"
             >
               ›
             </button>

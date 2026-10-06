@@ -46,7 +46,7 @@ export function HomePage() {
   const openNotes = notes.filter((n) => n.status !== "DONE").slice(0, 6);
 
   return (
-    <div className="-m-8">
+    <div className="-m-4 md:-m-8">
       <Hero
         imageUrl={heroImage(featured)}
         fallbackImageUrl={hiResCover(featured?.coverImageUrl)}
@@ -79,7 +79,7 @@ export function HomePage() {
         onSlide={setSlide}
       />
 
-      <div className="space-y-10 px-8 py-10">
+      <div className="space-y-10 px-4 py-8 md:px-8 md:py-10">
         <PosterRow
           title="Mi lista de anime"
           right={
