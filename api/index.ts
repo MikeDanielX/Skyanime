@@ -2,7 +2,12 @@
 // Vercel detecta este archivo (carpeta /api en la raíz) y lo despliega como UNA
 // función. Montamos la app Fastify entera aquí SIN llamar a listen() — en
 // serverless no hay puerto: Vercel nos pasa (req,res) de Node y se los "emitimos"
-// a Fastify. index.ts (con listen) sigue siendo solo para dev local.
+// a Fastify. apps/api/src/index.ts (con listen) sigue siendo solo para dev local.
+//
+// Se llama index.ts (no [...path].ts) a propósito: fuera de Next.js, Vercel
+// traduce [...path] a ([^/]+) = UN solo segmento, así /api/auth/login daba 404.
+// El rewrite "/api/(.*)" → "/api" de vercel.json manda todo aquí; req.url
+// conserva la ruta original, así que el strip de /api de abajo sigue valiendo.
 //
 // Importa el server YA COMPILADO (dist), no el fuente: dist usa imports .js que
 // Node resuelve; el fuente usa extensiones .js apuntando a .ts que el bundler no
